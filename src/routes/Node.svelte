@@ -1,60 +1,85 @@
 <script lang="ts">
-	import { fly, scale } from "svelte/transition";
 	import type { Point } from "./geometry";
+	import { onMount } from "svelte";
 
 	export let pos: Point;
-	export let parent: Point;
-	export let small = false;
+	export let parent: Point | undefined;
+	export let fill = false;
 
-	// let angle = Math.atan2(pos.y - parent.y, pos.x - parent.x);
-	let angle = Math.atan2(parent.y - pos.y, parent.x - pos.x);
-	let dist = Math.sqrt((pos.y - parent.y) ** 2 + (pos.x - parent.x) ** 2);
-	let offset = { x: pos.x - parent.x, y: pos.y - parent.y };
+	let origin = parent ?? pos;
+
+	let show = false;
+	onMount(() => {
+		requestAnimationFrame(() => requestAnimationFrame(() => (show = true)));
+	});
 </script>
 
 <div
-	class="line"
-	in:scale={{ duration: 1000, delay: 200 }}
-	style="--h: 1px; --len: {dist}px; --x: {pos.x}px; --y: {pos.y}px; --a: {angle}rad"
-/>
-<div
 	class="node"
-	class:small
-	in:fly={{ x: -offset.x, y: -offset.y, duration: 1000, delay: 0 }}
-	style="--x: {pos.x}px; --y: {pos.y}px"
+	class:fill
+	class:show
+	style="--x: {pos.x}px; --y: {pos.y}px; --x0: {origin.x}px; --y0: {origin.y}px"
 />
 
 <style lang="scss">
+	$diam: 16px;
+	$inner_diam: 11px;
+	$border-width: 1px;
+	$in: ease-out 500ms;
+
 	.node {
-		$diam: 30px;
-
+		position: absolute;
 		z-index: 1;
-		position: absolute;
-		border: 1px solid #ea2;
-		// background-color: #ea2;
-		background-color: #114;
-		border-radius: 100%;
-		width: calc($diam - 2px);
-		height: calc($diam - 2px);
-		left: calc(var(--x) - $diam / 2 + 1px);
-		top: calc(var(--y) - $diam / 2 + 1px);
-	}
-	.small {
-		width: 10px;
-		height: 10px;
-	}
-	.line {
-		$margin: 50px;
 
+		width: $diam;
+		height: $diam;
+
+		background-color: #114;
+		border: $border-width solid #ea2;
+		border-radius: 100%;
+
+		transition: left $in, top $in, opacity $in;
+		left: calc(var(--x0) - $diam / 2);
+		top: calc(var(--y0) - $diam / 2);
+		opacity: 0;
+	}
+	.node.show {
+		left: calc(var(--x) - $diam / 2);
+		top: calc(var(--y) - $diam / 2);
+		opacity: 1;
+	}
+
+	.fill {
+		cursor: pointer;
+		width: $inner_diam;
+		height: $inner_diam;
+		background-color: #ea2;
+		border: calc(($diam - $inner_diam) / 2) solid #114;
+		transition: left $in, top $in, opacity $in, width 200ms, height 200ms,
+			border-width 200ms;
+	}
+	.fill::after {
+		content: "";
 		position: absolute;
-		// border: var(--h) solid #ea2;
+		border-radius: 100%;
+		width: $diam;
+		height: $diam;
+		top: calc(($inner_diam - $diam) / 2 - $border-width);
+		left: calc(($inner_diam - $diam) / 2 - $border-width);
+		border: $border-width solid #ea2;
+		transition: all 200ms,
+	}
+	.fill:hover {
+		width: 0px;
+		height: 0px;
+		border-width: calc($diam / 2);
+	}
+	.fill:hover::after {
+		border-radius: 8%;
+		top: calc($diam / -2 - $border-width);
+		left: calc($diam / -2 - $border-width);
+	}
+	.fill:active::after {
 		background-color: #ea2;
-		background-color: #ea2;
-		width: calc(var(--len) - $margin);
-		height: var(--h);
-		top: calc(var(--h) / -2);
-		left: calc(($margin - var(--len)) / 2);
-		translate: var(--x) var(--y);
-		transform: rotate(var(--a)) translate(calc(var(--len) / 2), 0px);
 	}
 </style>

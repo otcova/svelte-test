@@ -1,12 +1,12 @@
 
 export type Point = { x: number; y: number };
 
-export function segment_intersect(
+export function segmentIntersect(
 	a0: Point,
 	b0: Point,
 	a1: Point,
 	b1: Point
-): false | Point {
+): boolean {
 	const s1_x = b0.x - a0.x,
 		s1_y = b0.y - a0.y;
 	const s2_x = b1.x - a1.x,
@@ -20,10 +20,7 @@ export function segment_intersect(
 		(-s2_x * s1_y + s1_x * s2_y);
 
 	const e = 0.001;
-	if (e < s && s < 1 - e && e < t && t < 1 - e)
-		return { x: a0.x + t * s1_x, y: a0.y + t * s1_y };
-
-	return false;
+	return e < s && s < 1 - e && e < t && t < 1 - e;
 }
 
 // Function to check intercept of line seg and circle
@@ -32,7 +29,7 @@ export function segment_intersect(
 // r: radius of circle
 // returns true if touching or crossing else false
 
-export function circle_line_collision(C: Point, r: number, A: Point, B: Point) {
+export function circleLineCollision(C: Point, r: number, A: Point, B: Point) {
 	var dist;
 	const v1x = B.x - A.x;
 	const v1y = B.y - A.y;
